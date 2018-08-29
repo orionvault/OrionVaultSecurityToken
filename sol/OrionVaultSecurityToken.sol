@@ -515,12 +515,9 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     /* Multiple token transfers from one address to save gas */
 
     function transferMultiple(address[] _addresses, uint[] _amounts) external {
-        require(_addresses.length <= 100);
         require(_addresses.length == _amounts.length);
-
-        // do the transfers
-        for (uint j; j < _addresses.length; j++) {
-            transfer(_addresses[j], _amounts[j]);
+        for (uint i; i < _addresses.length; i++) {
+            transfer(_addresses[i], _amounts[i]);
         }
 
     }
