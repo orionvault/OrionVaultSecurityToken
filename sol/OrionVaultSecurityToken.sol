@@ -297,7 +297,7 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
       uint oldDividendResidue = dividendResidue;
       uint availableToDistribute = dividendResidue.add(msg.value);
       uint dividendPerToken = availableToDistribute / tokensIssuedTotal;
-      dividendResidue = availableToDistribute - dividendPerToken.mul(tokensIssuedTotal);
+      dividendResidue = availableToDistribute.sub(dividendPerToken.mul(tokensIssuedTotal));
       dividendTotal = dividendTotal.add(dividendPerToken);
       emit Dividend(msg.value, oldDividendResidue, availableToDistribute, dividendResidue, dividendPerToken, dividendTotal, tokensIssuedTotal);
     }
@@ -420,12 +420,30 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     }
     
     function adjustVotes(address _from, address _to, uint _amount) internal {
-      if (!isVotingOpen()) return;
-      uint voteNr = getVoteNr();
-      if (vote[voteNr][_from] == vote[voteNr][_from]) return;
-      //
-    
-    }
+        if (!isVotingOpen()) return;
+		if (_amount == 0) return;
+        uint voteNr = getVoteNr();
+
+		// nothing to do if both accounts have the same vote:
+		//
+		if (vote[voteNr][_from] == vote[voteNr][_to]) return;
+
+		// now that we have excluded the case of identical votes:
+        //
+	    if (vote[voteNr][_from] == 0) {
+		    votesTotal[voteNr] = votesTotal[voteNr].add(_amount);
+	    } else if (vote[voteNr][_from] == -1) {
+		    votesAgainst[voteNr] = votesAgainst[voteNr].sub(_amount);
+	    }		
+		
+	    if (vote[voteNr][_to] == 0) {
+		    votesTotal[voteNr] = votesTotal[voteNr].sub(_amount);
+	    } else if (vote[voteNr][_to] == -1) {
+		    votesAgainst[voteNr] = votesAgainst[voteNr].add(_amount);
+	    }		
+
+	}
+
     
     // Minting --------------------------------------------
     
