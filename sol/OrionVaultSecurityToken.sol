@@ -41,38 +41,29 @@ library SafeMath {
 //
 // DateUtilities
 //
-// borrowed from https://github.com/bokkypoobah/BokkyPooBahsDateTimeLibrary/blob/master/contracts/BokkyPooBahsDateTimeLibrary.sol
+// adapted from https://github.com/bokkypoobah/BokkyPooBahsDateTimeLibrary/blob/master/contracts/BokkyPooBahsDateTimeLibrary.sol
 //
 // ----------------------------------------------------------------------------
 
 library DateUtilities {
 
-    uint constant SECONDS_PER_DAY = 24 * 60 * 60;
-    int constant OFFSET19700101 = 2440588;
+    function timestampToYearMonth(uint timestamp) internal pure returns (uint year, uint month) {
+        int __days = int(timestamp / 86400);
 
-    function _daysToDate(uint _days) internal pure returns (uint year, uint month, uint day) {
-        int __days = int(_days);
-
-        int L = __days + 68569 + OFFSET19700101;
+        int L = __days + 2509157;
         int N = 4 * L / 146097;
         L = L - (146097 * N + 3) / 4;
         int _year = 4000 * (L + 1) / 1461001;
         L = L - 1461 * _year / 4 + 31;
         int _month = 80 * L / 2447;
-        int _day = L - 2447 * _month / 80;
         L = _month / 11;
         _month = _month + 2 - 12 * L;
         _year = 100 * (N - 49) + _year + L;
 
         year = uint(_year);
         month = uint(_month);
-        day = uint(_day);
     }
 
-    function timestampToDate(uint timestamp) internal pure returns (uint year, uint month, uint day) {
-        (year, month, day) = _daysToDate(timestamp / SECONDS_PER_DAY);
-    }
-    
 }
 
 // ----------------------------------------------------------------------------
@@ -86,18 +77,13 @@ contract Owned {
     address public owner;
     address public newOwner;
 
-    mapping(address => bool) public isAdmin;
-
     event OwnershipTransferProposed(address indexed _from, address indexed _to);
     event OwnershipTransferred(address indexed _from, address indexed _to);
-    event AdminChange(address indexed _admin, bool _status);
 
     modifier onlyOwner {require(msg.sender == owner); _;}
-    modifier onlyAdmin {require(isAdmin[msg.sender]); _;}
 
     constructor() public {
         owner = msg.sender;
-        isAdmin[owner] = true;
     }
 
     function transferOwnership(address _newOwner) public onlyOwner {
@@ -110,18 +96,6 @@ contract Owned {
         require(msg.sender == newOwner);
         emit OwnershipTransferred(owner, newOwner);
         owner = newOwner;
-    }
-
-    function addAdmin(address _a) public onlyOwner {
-        require(isAdmin[_a] == false);
-        isAdmin[_a] = true;
-        emit AdminChange(_a, true);
-    }
-
-    function removeAdmin(address _a) public onlyOwner {
-        require(isAdmin[_a] == true);
-        isAdmin[_a] = false;
-        emit AdminChange(_a, false);
     }
 
 }
@@ -257,12 +231,12 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     
     uint public constant NEGATIVE_VOTE_THRESHOLD = 25;
 
-    mapping(uint => mapping (address => int8)) vote;
-    mapping(uint => uint) votesAgainst;
-    mapping(uint => uint) votesTotal;
-    mapping(uint => uint) tokenTotal;
-    mapping(uint => uint) voteResult;
-    mapping(uint => bool) claimedTeam;
+    mapping(uint => mapping (address => int8)) public vote;
+    mapping(uint => uint) public votesAgainst;
+    mapping(uint => uint) public votesTotal;
+    mapping(uint => uint) public tokenTotal;
+    mapping(uint => uint) public voteResult;
+    mapping(uint => bool) public claimedTeam;
 
     // Dividend
     
@@ -284,15 +258,15 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     event ChangedMaxTokenSupply(uint _maxTokenSupply);
     event TokensMinted(address _account, uint _tokens);
     event TokenExchangeRequested(address _account, uint _tokens);
-    
-    // now alias ------------------------------------------
-  
-    function atNow() internal view returns (uint) {
+
+    // Now alias ------------------------------------------
+
+    function atNow() public view returns (uint) {
         return now;
     }
 
     // Dividend -------------------------------------------
-    
+
     function payDividend() public onlyOwner payable {
       uint oldDividendResidue = dividendResidue;
       uint availableToDistribute = dividendResidue.add(msg.value);
@@ -301,7 +275,7 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
       dividendTotal = dividendTotal.add(dividendPerToken);
       emit Dividend(msg.value, oldDividendResidue, availableToDistribute, dividendResidue, dividendPerToken, dividendTotal, tokensIssuedTotal);
     }
-    
+
     function claimDividend(address _account) public {
       if (balances[_account] > 0 && dividendTracker[_account] < dividendTotal) {
           uint payout = (dividendTotal - dividendTracker[_account]).mul(balances[_account]);
@@ -310,22 +284,22 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
           emit DividendClaimed(_account, payout);
       }
     }
-    
-    function claimDividend(address[] _addresses) public {
+
+    function claimDividendMultiple(address[] _addresses) public {
         for (uint i; i < _addresses.length; i++) {
             claimDividend(_addresses[i]);
         }
     }
-    
+
     // Voting ---------------------------------------------
-    
+
     function getVoteNr() public view returns(uint voteNr) {
         //
         // if voting is open, returns the current voting number
         // otherwise returns 0
         //
         if (teamUnclaimedTokens == 0) return 0;
-        (uint year, uint month, uint day) = DateUtilities.timestampToDate(atNow());
+        (uint year, uint month) = DateUtilities.timestampToYearMonth(atNow());
         if (year >= 2020 && month == 6) {
             voteNr = 2*(year - 2019);
         } else if (year >= 2019 && month == 12) {
@@ -334,22 +308,22 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
             return 0;
         }
     }
-    
+
     function isVotingOpen() public view returns(bool) {
-      if (getVoteNr() > 0) return true;
-      return false;
+        if (getVoteNr() > 0) return true;
+        return false;
     }
-    
+
     function getLastVoteNr() public view returns(uint lastVoteNr) {
-      (uint year, uint month, uint day) = DateUtilities.timestampToDate(atNow());
-      if (year < 2020) return 0;
-      if (month <= 6) {
-          lastVoteNr = 1 + 2*(year - 2020);
-      } else {
-          lastVoteNr = 2*(year - 2019);
-      }
+        (uint year, uint month) = DateUtilities.timestampToYearMonth(atNow());
+        if (year < 2020) return 0;
+        if (month <= 6) {
+            lastVoteNr = 1 + 2*(year - 2020);
+        } else {
+            lastVoteNr = 2*(year - 2019);
+        }
     }
-    
+
     function castVoteFor() public {
         uint voteNr = getVoteNr();
         require(voteNr > 0);
@@ -384,12 +358,12 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
         }
         // NB: nothing to do if the vote was already "against"
     }
-    
+
     function processVote(uint voteNr) public {
         require(voteNr <= getLastVoteNr());
         require(voteResult[voteNr] == 0);
         if (voteNr > 1) require(voteResult[voteNr - 1] != 0);
-        //
+
         uint percentageAgainst = votesAgainst[voteNr].mul(100) / tokenTotal[voteNr];
         if (percentageAgainst >= NEGATIVE_VOTE_THRESHOLD) {
             voteResult[voteNr] = 2;
@@ -407,7 +381,7 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
             emit VoteResult(voteNr, 1, newTeamTokens);
         }
     }
-    
+
     function getTeamTokenAmount() internal returns(uint tokens) {
         if (teamUnclaimedTokens == 0) return 0;
         if (TEAM_VESTING_AMOUNT <= teamUnclaimedTokens) {
@@ -418,62 +392,64 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
             teamUnclaimedTokens = 0;
         }
     }
-    
+
     function adjustVotes(address _from, address _to, uint _amount) internal {
         if (!isVotingOpen()) return;
-		if (_amount == 0) return;
+        if (_amount == 0) return;
         uint voteNr = getVoteNr();
 
-		// nothing to do if both accounts have the same vote:
-		//
-		if (vote[voteNr][_from] == vote[voteNr][_to]) return;
-
-		// now that we have excluded the case of identical votes:
+        // nothing to do if both accounts have the same vote:
         //
-	    if (vote[voteNr][_from] == 0) {
-		    votesTotal[voteNr] = votesTotal[voteNr].add(_amount);
-	    } else if (vote[voteNr][_from] == -1) {
-		    votesAgainst[voteNr] = votesAgainst[voteNr].sub(_amount);
-	    }		
-		
-	    if (vote[voteNr][_to] == 0) {
-		    votesTotal[voteNr] = votesTotal[voteNr].sub(_amount);
-	    } else if (vote[voteNr][_to] == -1) {
-		    votesAgainst[voteNr] = votesAgainst[voteNr].add(_amount);
-	    }		
+        if (vote[voteNr][_from] == vote[voteNr][_to]) return;
 
-	}
-
-    
-    // Minting --------------------------------------------
-    
-    function ownerChangeMaxTokenSupply(uint _tokens) external onlyOwner {
-      require(_tokens <= tokensIssuedTotal.add(teamUnclaimedTokens));
-      maxTokenSupply = _tokens;
-      emit ChangedMaxTokenSupply(maxTokenSupply);
+        // now that we have excluded the case of identical votes:
+        //
+        if (vote[voteNr][_from] == 0) {
+            votesTotal[voteNr] = votesTotal[voteNr].add(_amount);
+        } else if (vote[voteNr][_from] == -1) {
+            votesAgainst[voteNr] = votesAgainst[voteNr].sub(_amount);
+        }
+        //
+        if (vote[voteNr][_to] == 0) {
+            votesTotal[voteNr] = votesTotal[voteNr].sub(_amount);
+        } else if (vote[voteNr][_to] == -1) {
+            votesAgainst[voteNr] = votesAgainst[voteNr].add(_amount);
+        }
     }
-    
+
+    // Minting --------------------------------------------
+
+    function changeMaxTokenSupply(uint _tokens) external onlyOwner {
+        require(_tokens >= tokensIssuedTotal.add(teamUnclaimedTokens));
+        maxTokenSupply = _tokens;
+        emit ChangedMaxTokenSupply(maxTokenSupply);
+    }
+
     function mintTokens(address _account, uint _tokens) external onlyOwner {
+        //
         require(_tokens <= availableToMint());
         require(_tokens > 0);
         require(_account != 0x0);
+        require(!isVotingOpen());
+        //
         if (balances[_account] > 0) claimDividend(_account);
         balances[_account] = balances[_account].add(_tokens);
         tokensIssuedTotal = tokensIssuedTotal.add(_tokens);
-        emit  Transfer(0x0, _account, _tokens);
+        emit Transfer(0x0, _account, _tokens);
         emit TokensMinted(_account, _tokens);
     }
-    
+
     function availableToMint() public view returns(uint) {
-      return maxTokenSupply.sub(tokensIssuedTotal).sub(teamUnclaimedTokens);
+        return maxTokenSupply.sub(tokensIssuedTotal).sub(teamUnclaimedTokens);
     }
 
     // Basic Functions ------------------------------------
 
-    constructor() public {}
-
-    function () public {
+    constructor() public {
+        require(teamUnclaimedTokens < maxTokenSupply);
     }
+
+    function () public {}
 
     function makeTradeable() public {
         require(msg.sender == owner || atNow() > DATE_TRADEABLE_LIMIT);
@@ -481,23 +457,26 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     }
 
     // Exchange with equity
-    
+
     function ownerExchangeOpen() public onlyOwner {
         isExchangeOpen = true;
     }
-    
+
     function ownerExchangeClose() public onlyOwner {
         isExchangeOpen = false;
     }
-    
+
     function exchangeForEquity(uint _tokens) public {
+        //
         require(isExchangeOpen);
+        require(!isVotingOpen());
         require(_tokens > 0 && _tokens <= balances[msg.sender]);
+        //
         balances[msg.sender] = balances[msg.sender].sub(_tokens);
         tokensIssuedTotal = tokensIssuedTotal.sub(_tokens);
         emit TokenExchangeRequested(msg.sender, _tokens);
     }
-    
+
     // ERC20 functions -------------------
 
     /* Transfer out any accidentally sent ERC20 tokens */
@@ -507,7 +486,6 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     }
 
     /* To do before any transfers */
-    
     function beforeTransfer(address _from, address _to, uint _amount) internal {
         if (balances[_from] > 0) claimDividend(_from);
         if (balances[_to] > 0) claimDividend(_to);

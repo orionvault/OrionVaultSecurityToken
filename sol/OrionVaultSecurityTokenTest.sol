@@ -12,19 +12,19 @@ contract OrionVaultSecurityTokenTest is OrionVaultSecurityToken {
     
     // Events ---------------------------
 
-    event TestTimeSet(uint _now);
+    event SetTestTime(uint _now);
 
     // Functions ------------------------
 
     constructor() public {}
 
-    function atNow() public constant returns (uint) {
-            return testTime;
+    function atNow() public view returns (uint) {
+        return testTime;
     }
 
     function setTestTime(uint _t) public onlyOwner {
         testTime = _t;
-        emit TestTimeSet(_t);
+        emit SetTestTime(_t);
     }
 
 }
