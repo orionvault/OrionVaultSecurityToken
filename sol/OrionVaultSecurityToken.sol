@@ -246,7 +246,7 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
 
     // exchange for equity variable
     
-    bool public isExchangeOpen;
+    bool public isExchangeOpen = false;
 
     // Events ---------------------------------------------
 
@@ -265,9 +265,26 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
         return now;
     }
 
+    // Basic Functions ------------------------------------
+
+    constructor() public {
+        require(teamUnclaimedTokens < maxTokenSupply);
+    }
+
+    function () public onlyOwner payable{
+        payDividend();
+    }
+
+    // Making tokens tradeable ----------------------------
+
+    function makeTradeable() public {
+        require(msg.sender == owner || atNow() > DATE_TRADEABLE_LIMIT);
+        tokensTradeable = true;
+    }
+
     // Dividend -------------------------------------------
 
-    function payDividend() public onlyOwner payable {
+    function payDividend() internal {
       uint oldDividendResidue = dividendResidue;
       uint availableToDistribute = dividendResidue.add(msg.value);
       uint dividendPerToken = availableToDistribute / tokensIssuedTotal;
@@ -443,20 +460,7 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
         return maxTokenSupply.sub(tokensIssuedTotal).sub(teamUnclaimedTokens);
     }
 
-    // Basic Functions ------------------------------------
-
-    constructor() public {
-        require(teamUnclaimedTokens < maxTokenSupply);
-    }
-
-    function () public {}
-
-    function makeTradeable() public {
-        require(msg.sender == owner || atNow() > DATE_TRADEABLE_LIMIT);
-        tokensTradeable = true;
-    }
-
-    // Exchange with equity
+    // Exchange tokens for equity
 
     function ownerExchangeOpen() public onlyOwner {
         isExchangeOpen = true;
