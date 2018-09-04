@@ -229,7 +229,7 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     uint public constant TEAM_VESTING_AMOUNT = 375000;
     uint public teamUnclaimedTokens = 1500000;
     
-    uint public constant NEGATIVE_VOTE_THRESHOLD = 25;
+    uint public constant NEGATIVE_VOTE_THRESHOLD = 50;
 
     mapping(uint => mapping (address => int8)) public vote;
     mapping(uint => uint) public votesAgainst;
@@ -285,21 +285,23 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     // Dividend -------------------------------------------
 
     function payDividend() internal {
-      uint oldDividendResidue = dividendResidue;
-      uint availableToDistribute = dividendResidue.add(msg.value);
-      uint dividendPerToken = availableToDistribute / tokensIssuedTotal;
-      dividendResidue = availableToDistribute.sub(dividendPerToken.mul(tokensIssuedTotal));
-      dividendTotal = dividendTotal.add(dividendPerToken);
-      emit Dividend(msg.value, oldDividendResidue, availableToDistribute, dividendResidue, dividendPerToken, dividendTotal, tokensIssuedTotal);
+        uint oldDividendResidue = dividendResidue;
+        uint availableToDistribute = dividendResidue.add(msg.value);
+        uint dividendPerToken = availableToDistribute / tokensIssuedTotal;
+        dividendResidue = availableToDistribute.sub(dividendPerToken.mul(tokensIssuedTotal));
+        dividendTotal = dividendTotal.add(dividendPerToken);
+        emit Dividend(msg.value, oldDividendResidue, availableToDistribute, dividendResidue, dividendPerToken, dividendTotal, tokensIssuedTotal);
     }
 
     function claimDividend(address _account) public {
-      if (balances[_account] > 0 && dividendTracker[_account] < dividendTotal) {
-          uint payout = (dividendTotal - dividendTracker[_account]).mul(balances[_account]);
-          dividendTracker[_account] = dividendTotal;
-          _account.transfer(payout);
-          emit DividendClaimed(_account, payout);
-      }
+        if (balances[_account] == 0) {
+            dividendTracker[_account] = dividendTotal;
+        } else if (balances[_account] > 0 && dividendTracker[_account] < dividendTotal) {
+            uint payout = (dividendTotal - dividendTracker[_account]).mul(balances[_account]);
+            dividendTracker[_account] = dividendTotal;
+            _account.transfer(payout);
+            emit DividendClaimed(_account, payout);
+        }
     }
 
     function claimDividendMultiple(address[] _addresses) public {
@@ -491,8 +493,8 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
 
     /* To do before any transfers */
     function beforeTransfer(address _from, address _to, uint _amount) internal {
-        if (balances[_from] > 0) claimDividend(_from);
-        if (balances[_to] > 0) claimDividend(_to);
+        claimDividend(_from);
+        claimDividend(_to);
         if (isVotingOpen()) adjustVotes(_from, _to, _amount);
     }
 
