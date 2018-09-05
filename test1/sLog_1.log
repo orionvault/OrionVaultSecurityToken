@@ -1,0 +1,97 @@
+2018-09-05 13:18:42 UTC
+
+========================================
+== Contract Orion Vault Security Token initialized
+== 
+At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
+
+===============================================================================
+============ Set wallet and other initial checks
+===============================================================================
+
+========================================
+== Set wallet
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [wallet acc]  is 6369da8cedb7e360f82adde7fe4a92b443c424f9 as expected
+
+DIFFERENCES
+[:c, :wallet, "b7c0b4e6156aacdaa767fb1515949d83948f889f", "6369da8cedb7e360f82adde7fe4a92b443c424f9"]
+
+========================================
+== Initial checks
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [max_token_supply acc]  is 10000000 as expected
+ok  val [tokens_tradeable acc]  is false as expected
+ok  val [is_exchange_open acc]  is false as expected
+ok  val [available_to_mint acc]  is 8500000 as expected
+ok  val [get_vote_nr acc]  is 0 as expected
+ok  val [is_voting_open acc]  is false as expected
+
+DIFFERENCES
+(no differences found)
+
+===============================================================================
+============ Some minting
+===============================================================================
+
+========================================
+== Change max supply (initial is 10_000_000) and mint some
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [max_token_supply acc]  is 4500000 as expected
+ok  val [balance_of acc1] 1 is 50000 as expected
+ok  diff [balance_of acc1] is 50000 as expected
+ok  val [balance_of acc2] 2 is 100000 as expected
+ok  diff [balance_of acc2] is 100000 as expected
+ok  val [balance_of acc3] 3 is 150000 as expected
+ok  diff [balance_of acc3] is 150000 as expected
+ok  val [balance_of acc4] 4 is 200000 as expected
+ok  diff [balance_of acc4] is 200000 as expected
+ok  val [balance_of acc5] 5 is 500000 as expected
+ok  diff [balance_of acc5] is 500000 as expected
+ok  val [balance_of acc6] 6 is 750000 as expected
+ok  diff [balance_of acc6] is 750000 as expected
+ok  val [balance_of acc7] 7 is 1250000 as expected
+ok  diff [balance_of acc7] is 1250000 as expected
+ok  val [balance_of acc8] 8 is 0 as expected
+ok  diff [balance_of acc8] is 0 as expected
+ok  val [total_supply acc]  is 3000000 as expected
+ok  diff [total_supply acc] is 3000000 as expected
+
+DIFFERENCES
+[:c, :tokens_issued_total, 0.0, 3000000.0, 3000000.0]
+[:c, :max_token_supply, 10000000.0, 4500000.0, -5500000.0]
+[1, :balance_of, 0.0, 50000.0, 50000.0]
+[2, :balance_of, 0.0, 100000.0, 100000.0]
+[3, :balance_of, 0.0, 150000.0, 150000.0]
+[4, :balance_of, 0.0, 200000.0, 200000.0]
+[5, :balance_of, 0.0, 500000.0, 500000.0]
+[6, :balance_of, 0.0, 750000.0, 750000.0]
+[7, :balance_of, 0.0, 1250000.0, 1250000.0]
+
+========================================
+== Jump to: 2018-01-01 00:00:00 UTC
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [at_now acc]  is 1514764800 as expected
+
+DIFFERENCES
+[:c, :at_now, 1, 1514764800, 1514764799]
+
+Errors found: 0
+
+2018-09-05 13:18:59 UTC

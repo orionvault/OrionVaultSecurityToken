@@ -1,0 +1,339 @@
+2018-09-05 13:20:19 UTC
+
+========================================
+== Contract Orion Vault Security Token initialized
+== 
+At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
+
+========================================
+== Jump to: 2019-11-30 23:59:59 UTC
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [at_now acc]  is 1575158399 as expected
+
+DIFFERENCES
+[:c, :at_now, 1561852800, 1575158399, 13305599]
+
+========================================
+== Just before the first voting period
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [get_vote_nr acc]  is 0 as expected
+
+DIFFERENCES
+(no differences found)
+
+========================================
+== Jump to: 2019-12-01 00:00:00 UTC
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [at_now acc]  is 1575158400 as expected
+
+DIFFERENCES
+[:c, :at_now, 1575158399, 1575158400, 1]
+
+========================================
+== First voting period start
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [get_vote_nr acc]  is 1 as expected
+ok  val [is_voting_open acc]  is true as expected
+ok  val [get_last_vote_nr acc]  is 0 as expected
+
+DIFFERENCES
+(no differences found)
+
+========================================
+== Some votes
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [votes_against acc]  is 350000 as expected
+ok  diff [votes_against acc] is 350000 as expected
+ok  val [votes_total acc]  is 450000 as expected
+ok  diff [votes_total acc] is 450000 as expected
+ok  val [token_total acc]  is 3000000 as expected
+ok  diff [token_total acc] is 3000000 as expected
+ok  val [vote_result acc]  is 0 as expected
+ok  val [claimed_team acc]  is false as expected
+
+DIFFERENCES
+["vote:1:0xCf10609a18BF4F59C27d44e5078A81Eb9CCeb7B5", :vote, 0, 1, 1]
+["vote:1:0x64d080373bdB25B1Ede1075C33c8cf733259bBCE", :vote, 0, 1, 1]
+["vote:1:0xae22Fcd102c6C07846b81cae68d8ee62e8ff9D6F", :vote, 0, -1, -1]
+["vote:1:0x6b733436c8fc3cCf759bD368738aE77a399946f2", :vote, 0, -1, -1]
+["votes_against:1", :votes_against, 0, 350000, 350000]
+["votes_total:1", :votes_total, 0, 450000, 450000]
+["token_total:1", :token_total, 0.0, 3000000.0, 3000000.0]
+
+===============================================================================
+============ Impact of transfers
+===============================================================================
+
+========================================
+== Jump to: 2019-12-31 23:59:59 UTC
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [at_now acc]  is 1577836799 as expected
+
+DIFFERENCES
+[:c, :at_now, 1575158400, 1577836799, 2678399]
+
+========================================
+== First voting period is still open!
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [get_vote_nr acc]  is 1 as expected
+ok  val [is_voting_open acc]  is true as expected
+ok  val [get_last_vote_nr acc]  is 0 as expected
+
+DIFFERENCES
+(no differences found)
+
+========================================
+== Transfer (0) to (0)
+== 
+
+ACTIONS
+
+VERIFY
+ok  diff [balance_of acc5] is -10000 as expected
+ok  diff [balance_of acc6] is 10000 as expected
+ok  val [votes_against acc]  is 350000 as expected
+ok  diff [votes_against acc] is 0 as expected
+ok  val [votes_total acc]  is 450000 as expected
+ok  diff [votes_total acc] is 0 as expected
+
+DIFFERENCES
+[5, :balance_of, 350000.0, 340000.0, -10000.0]
+[6, :balance_of, 850000.0, 860000.0, 10000.0]
+
+========================================
+== Transfer (1) to (1)
+== 
+
+ACTIONS
+
+VERIFY
+ok  diff [balance_of acc1] is -10000 as expected
+ok  diff [balance_of acc2] is 10000 as expected
+ok  val [votes_against acc]  is 350000 as expected
+ok  diff [votes_against acc] is 0 as expected
+ok  val [votes_total acc]  is 450000 as expected
+ok  diff [votes_total acc] is 0 as expected
+
+DIFFERENCES
+[:c, :eth, 1516666666666800000, 1483333333333450000, -33333333333350000]
+[1, :balance_of, 50000.0, 40000.0, -10000.0]
+[2, :balance_of, 50000.0, 60000.0, 10000.0]
+[2, :dividend_tracker, 333333333333, 1000000000000, 666666666667]
+
+========================================
+== Transfer (-1) to (-1)
+== 
+
+ACTIONS
+
+VERIFY
+ok  diff [balance_of acc3] is -10000 as expected
+ok  diff [balance_of acc4] is 10000 as expected
+ok  val [votes_against acc]  is 350000 as expected
+ok  diff [votes_against acc] is 0 as expected
+ok  val [votes_total acc]  is 450000 as expected
+ok  diff [votes_total acc] is 0 as expected
+
+DIFFERENCES
+[:c, :eth, 1483333333333450000, 1250000000000000000, -233333333333450000]
+[3, :balance_of, 150000.0, 140000.0, -10000.0]
+[3, :dividend_tracker, 333333333333, 1000000000000, 666666666667]
+[4, :balance_of, 200000.0, 210000.0, 10000.0]
+[4, :dividend_tracker, 333333333333, 1000000000000, 666666666667]
+
+========================================
+== Transfer (0) to (1)
+== 
+
+ACTIONS
+
+VERIFY
+ok  diff [balance_of acc6] is -10000 as expected
+ok  diff [balance_of acc1] is 10000 as expected
+ok  val [votes_against acc]  is 350000 as expected
+ok  diff [votes_against acc] is 0 as expected
+ok  val [votes_total acc]  is 460000 as expected
+ok  diff [votes_total acc] is 10000 as expected
+
+DIFFERENCES
+[1, :balance_of, 40000.0, 50000.0, 10000.0]
+[6, :balance_of, 860000.0, 850000.0, -10000.0]
+["votes_total:1", :votes_total, 450000, 460000, 10000]
+
+========================================
+== Transfer (0) to (-1)
+== 
+
+ACTIONS
+
+VERIFY
+ok  diff [balance_of acc6] is -10000 as expected
+ok  diff [balance_of acc3] is 10000 as expected
+ok  val [votes_against acc]  is 360000 as expected
+ok  diff [votes_against acc] is 10000 as expected
+ok  val [votes_total acc]  is 470000 as expected
+ok  diff [votes_total acc] is 10000 as expected
+
+DIFFERENCES
+[3, :balance_of, 140000.0, 150000.0, 10000.0]
+[6, :balance_of, 850000.0, 840000.0, -10000.0]
+["votes_against:1", :votes_against, 350000, 360000, 10000]
+["votes_total:1", :votes_total, 460000, 470000, 10000]
+
+========================================
+== Transfer (1) to (0)
+== 
+
+ACTIONS
+
+VERIFY
+ok  diff [balance_of acc2] is -10000 as expected
+ok  diff [balance_of acc5] is 10000 as expected
+ok  val [votes_against acc]  is 360000 as expected
+ok  diff [votes_against acc] is 0 as expected
+ok  val [votes_total acc]  is 460000 as expected
+ok  diff [votes_total acc] is -10000 as expected
+
+DIFFERENCES
+[2, :balance_of, 60000.0, 50000.0, -10000.0]
+[5, :balance_of, 340000.0, 350000.0, 10000.0]
+["votes_total:1", :votes_total, 470000, 460000, -10000]
+
+========================================
+== Transfer (1) to (-1)
+== 
+
+ACTIONS
+
+VERIFY
+ok  diff [balance_of acc1] is -10000 as expected
+ok  diff [balance_of acc3] is 10000 as expected
+ok  val [votes_against acc]  is 370000 as expected
+ok  diff [votes_against acc] is 10000 as expected
+ok  val [votes_total acc]  is 460000 as expected
+ok  diff [votes_total acc] is 0 as expected
+
+DIFFERENCES
+[1, :balance_of, 50000.0, 40000.0, -10000.0]
+[3, :balance_of, 150000.0, 160000.0, 10000.0]
+["votes_against:1", :votes_against, 360000, 370000, 10000]
+
+========================================
+== Transfer (-1) to (0)
+== 
+
+ACTIONS
+
+VERIFY
+ok  diff [balance_of acc3] is -10000 as expected
+ok  diff [balance_of acc6] is 10000 as expected
+ok  val [votes_against acc]  is 360000 as expected
+ok  diff [votes_against acc] is -10000 as expected
+ok  val [votes_total acc]  is 450000 as expected
+ok  diff [votes_total acc] is -10000 as expected
+
+DIFFERENCES
+[3, :balance_of, 160000.0, 150000.0, -10000.0]
+[6, :balance_of, 840000.0, 850000.0, 10000.0]
+["votes_against:1", :votes_against, 370000, 360000, -10000]
+["votes_total:1", :votes_total, 460000, 450000, -10000]
+
+========================================
+== Transfer (-1) to (1)
+== 
+
+ACTIONS
+
+VERIFY
+ok  diff [balance_of acc4] is -10000 as expected
+ok  diff [balance_of acc1] is 10000 as expected
+ok  val [votes_against acc]  is 350000 as expected
+ok  diff [votes_against acc] is -10000 as expected
+ok  val [votes_total acc]  is 450000 as expected
+ok  diff [votes_total acc] is 0 as expected
+
+DIFFERENCES
+[1, :balance_of, 40000.0, 50000.0, 10000.0]
+[4, :balance_of, 210000.0, 200000.0, -10000.0]
+["votes_against:1", :votes_against, 360000, 350000, -10000]
+
+===============================================================================
+============ End of 
+===============================================================================
+
+========================================
+== Jump to: 2020-01-01 00:00:00 UTC
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [at_now acc]  is 1577836800 as expected
+
+DIFFERENCES
+[:c, :at_now, 1577836799, 1577836800, 1]
+
+========================================
+== First voting period is closed
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [get_vote_nr acc]  is 0 as expected
+ok  val [is_voting_open acc]  is false as expected
+ok  val [get_last_vote_nr acc]  is 1 as expected
+ok  val [vote_result acc]  is 0 as expected
+
+DIFFERENCES
+(no differences found)
+
+========================================
+== Claim team tokens
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [vote_result acc]  is 1 as expected
+***ERR*** val [balance_of acc1] is 50000 expected 375000
+***ERR*** diff [balance_of acc1] is 0 expected 375000
+ok  val [tokens_issued_total acc]  is 3375000 as expected
+ok  diff [tokens_issued_total acc] is 375000 as expected
+
+DIFFERENCES
+[:c, :tokens_issued_total, 3000000.0, 3375000.0, 375000.0]
+[:c, :team_unclaimed_tokens, 1500000.0, 1125000.0, -375000.0]
+["vote_result:1", :vote_result, 0, 1, 1]
+
+Errors found: 2
+
+2018-09-05 13:21:15 UTC

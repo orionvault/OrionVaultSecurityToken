@@ -1,0 +1,104 @@
+2018-09-05 13:19:44 UTC
+
+========================================
+== Contract Orion Vault Security Token initialized
+== 
+At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
+
+========================================
+== Jump to: 2019-06-30 00:00:00 UTC
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [at_now acc]  is 1561852800 as expected
+
+DIFFERENCES
+[:c, :at_now, 1514764800, 1561852800, 47088000]
+
+========================================
+== Another dividend
+== 
+
+ACTIONS
+CONTRIBUTE : @client.transfer(acct_#<Eth::Key:0x0000000004031570>, 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc, 2)
+
+VERIFY
+ok  val [dividend_total acc]  is 1000000000000 as expected
+ok  diff [dividend_total acc] is 666666666667 as expected
+ok  val [dividend_residue acc]  is 0 as expected
+ok  diff [dividend_residue acc] is -1000000 as expected
+
+DIFFERENCES
+[:c, :eth, 666666666667000000, 2666666666667000000, 2000000000000000000]
+[:c, :dividend_total, 333333333333, 1000000000000, 666666666667]
+[:c, :dividend_residue, 1000000, 0, -1000000]
+
+========================================
+== Claim a dividend
+== 
+
+ACTIONS
+
+VERIFY
+ok  diff [get_balance acc1] is ≈16666666666650000 as expected (within 0.1 ether)
+ok  diff [get_balance acc] is ≈-16666666666650000 as expected (within 0.1 ether)
+
+DIFFERENCES
+[:c, :eth, 2666666666667000000, 2633333333333650000, -33333333333350000]
+[1, :dividend_tracker, 333333333333, 1000000000000, 666666666667]
+
+========================================
+== Transfer some tokens (act 5 had received dividend 1, act 6 had not yet received any dividend)
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [balance_of acc5] 5 is 450000 as expected
+ok  diff [balance_of acc5] is -100000 as expected
+ok  val [balance_of acc6] 6 is 850000 as expected
+ok  diff [balance_of acc6] is 100000 as expected
+ok  val [dividend_tracker acc5] 5 is 1000000000000 as expected
+ok  diff [dividend_tracker acc5] is 666666666667 as expected
+ok  val [dividend_tracker acc6] 6 is 1000000000000 as expected
+ok  diff [dividend_tracker acc6] is 1000000000000 as expected
+ok  diff [get_balance acc5] is ≈333333333333500000 as expected (within 0.1 ether)
+ok  diff [get_balance acc6] is 750000000000000000 as expected
+ok  diff [get_balance acc] is ≈-1083333333333500000 as expected (within 0.1 ether)
+
+DIFFERENCES
+[:c, :eth, 2633333333333650000, 1516666666666800000, -1116666666666850000]
+[5, :balance_of, 550000.0, 450000.0, -100000.0]
+[5, :dividend_tracker, 333333333333, 1000000000000, 666666666667]
+[6, :balance_of, 750000.0, 850000.0, 100000.0]
+[6, :dividend_tracker, 0, 1000000000000, 1000000000000]
+
+========================================
+== Transfer some tokens to an account that was empty
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [balance_of acc5] 5 is 350000 as expected
+ok  diff [balance_of acc5] is -100000 as expected
+ok  val [balance_of acc8] 8 is 100000 as expected
+ok  diff [balance_of acc8] is 100000 as expected
+ok  val [dividend_tracker acc5] 5 is 1000000000000 as expected
+ok  diff [dividend_tracker acc5] is 0 as expected
+ok  val [dividend_tracker acc8] 8 is 1000000000000 as expected
+ok  diff [dividend_tracker acc8] is 1000000000000 as expected
+ok  diff [get_balance acc5] is ≈0 as expected (within 0.1 ether)
+ok  diff [get_balance acc6] is 0 as expected
+ok  diff [get_balance acc] is 0 as expected
+
+DIFFERENCES
+[5, :balance_of, 450000.0, 350000.0, -100000.0]
+[8, :balance_of, 0.0, 100000.0, 100000.0]
+[8, :dividend_tracker, 0, 1000000000000, 1000000000000]
+
+Errors found: 0
+
+2018-09-05 13:20:03 UTC

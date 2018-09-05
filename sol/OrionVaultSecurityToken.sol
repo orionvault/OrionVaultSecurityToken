@@ -219,12 +219,12 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
 
     uint public maxTokenSupply = 10000000;
 
-    // tradeable tokens
+    // Tradeable tokens
 
     bool public tokensTradeable;
     uint public constant DATE_TRADEABLE_LIMIT = 1546300800; // 01-JAN-2019 00:00:00
 
-    // voting
+    // Voting
     
     uint public constant TEAM_VESTING_AMOUNT = 375000;
     uint public teamUnclaimedTokens = 1500000;
@@ -244,7 +244,7 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     uint public dividendResidue;
     mapping(address => uint) public dividendTracker;
 
-    // exchange for equity variable
+    // Exchange for equity variable
     
     bool public isExchangeOpen = false;
 
@@ -253,7 +253,7 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     event Dividend(uint _wei, uint _oldResidue, uint _availableToDistribute, uint _newResidue, uint _dividendPerToken, uint _dividendTotal, uint _tokensIssuedTotal);
     event DividendClaimed(address _account, uint _payout);
     event Vote(uint _voteNr, address _account, int8 _before, int8 _after);
-    event VoteResult(uint _voteNr, int8 _result, uint _tokens);
+    event VoteResult(uint _voteNr, uint _result);
     event TeamTokensIssued(address _account, uint _newTeamTokens);
     event ChangedMaxTokenSupply(uint _maxTokenSupply);
     event TokensMinted(address _account, uint _tokens);
@@ -314,8 +314,14 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
 
     function getVoteNr() public view returns(uint voteNr) {
         //
-        // if voting is open, returns the current voting number
+        // voting is open during the month preceding a vesting event,
+        // which happens on 01-JAN and 01-JUL of every year as long
+        // as team tokens are available
+        //
+        // if voting is open, this function returns the current voting number
         // otherwise returns 0
+        //
+        // DEC19 => 1, JUN20 => 2, DEC20 => 3, JUN21 => 4, DEC21 => 5, etc.
         //
         if (teamUnclaimedTokens == 0) return 0;
         (uint year, uint month) = DateUtilities.timestampToYearMonth(atNow());
@@ -334,6 +340,14 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     }
 
     function getLastVoteNr() public view returns(uint lastVoteNr) {
+        //
+        // returns the number of the last completed voting, 
+        // whether such voting actually took place or not
+        //
+        // returns 0 until before 2020, then:
+        //
+        // 1H20 => 1, 2H20 => 2, 1H21 => 3, 2H21 => 4, 1H => 5, etc.
+        //
         (uint year, uint month) = DateUtilities.timestampToYearMonth(atNow());
         if (year < 2020) return 0;
         if (month <= 6) {
@@ -379,16 +393,23 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     }
 
     function processVote(uint voteNr) public {
+        // the vote must be over, and another voting is not open
         require(voteNr <= getLastVoteNr());
+        require(!isVotingOpen());
+
+        // the vote has not yet been processed
         require(voteResult[voteNr] == 0);
+
+        // a vote can only be processed if a vote immediately preceding 
+        // has already been processed
         if (voteNr > 1) require(voteResult[voteNr - 1] != 0);
 
-        uint percentageAgainst = votesAgainst[voteNr].mul(100) / tokenTotal[voteNr];
-        if (percentageAgainst >= NEGATIVE_VOTE_THRESHOLD) {
-            voteResult[voteNr] = 2;
-            emit VoteResult(voteNr, 2, 0);
-        } else {
-            voteResult[voteNr] = 1;
+        // get vote outcome
+        voteResult[voteNr] = getVoteResult(voteNr);
+        emit VoteResult(voteNr, voteResult[voteNr]);
+        
+        // issue team tokens in case of a favourable vote
+        if (voteResult[voteNr] == 1) {
             uint newTeamTokens = getTeamTokenAmount();
             if (newTeamTokens > 0) {
                 claimDividend(owner);
@@ -397,15 +418,24 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
                 emit Transfer(0x0, owner, newTeamTokens);
                 emit TeamTokensIssued(owner, newTeamTokens);
             }
-            emit VoteResult(voteNr, 1, newTeamTokens);
         }
     }
 
+    function getVoteResult(uint voteNr) internal view returns (uint) {
+        // case when no-one voted
+        if (tokenTotal[voteNr] == 0) return 1;
+
+        // we have some votes, decide based on proportion of negative votes
+        uint percentageAgainst = votesAgainst[voteNr].mul(100) / tokenTotal[voteNr];
+        if (percentageAgainst >= NEGATIVE_VOTE_THRESHOLD) return 2;
+        return 1;
+    }
+    
     function getTeamTokenAmount() internal returns(uint tokens) {
         if (teamUnclaimedTokens == 0) return 0;
         if (TEAM_VESTING_AMOUNT <= teamUnclaimedTokens) {
             teamUnclaimedTokens = teamUnclaimedTokens - TEAM_VESTING_AMOUNT;
-            return TEAM_VESTING_AMOUNT;
+            tokens = TEAM_VESTING_AMOUNT;
         } else {
             tokens = teamUnclaimedTokens;
             teamUnclaimedTokens = 0;
@@ -418,11 +448,9 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
         uint voteNr = getVoteNr();
 
         // nothing to do if both accounts have the same vote:
-        //
         if (vote[voteNr][_from] == vote[voteNr][_to]) return;
 
         // now that we have excluded the case of identical votes:
-        //
         if (vote[voteNr][_from] == 0) {
             votesTotal[voteNr] = votesTotal[voteNr].add(_amount);
         } else if (vote[voteNr][_from] == -1) {
@@ -445,13 +473,13 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     }
 
     function mintTokens(address _account, uint _tokens) external onlyOwner {
-        //
-        require(_tokens <= availableToMint());
-        require(_tokens > 0);
         require(_account != 0x0);
+        require(_tokens > 0 && _tokens <= availableToMint());
+
+        // minting is not possible when voting is open
         require(!isVotingOpen());
-        //
-        if (balances[_account] > 0) claimDividend(_account);
+
+        claimDividend(_account);
         balances[_account] = balances[_account].add(_tokens);
         tokensIssuedTotal = tokensIssuedTotal.add(_tokens);
         emit Transfer(0x0, _account, _tokens);
@@ -462,7 +490,7 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
         return maxTokenSupply.sub(tokensIssuedTotal).sub(teamUnclaimedTokens);
     }
 
-    // Exchange tokens for equity
+    // Exchange tokens for equity -------------------------
 
     function ownerExchangeOpen() public onlyOwner {
         isExchangeOpen = true;
@@ -474,16 +502,24 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
 
     function exchangeForEquity(uint _tokens) public {
         //
-        require(isExchangeOpen);
-        require(!isVotingOpen());
         require(_tokens > 0 && _tokens <= balances[msg.sender]);
+
+        // only possible if owner set isExchangeOpen to true
         //
+        require(isExchangeOpen);
+
+        // exchange for equity is not possible when voting is open
+        //
+        require(!isVotingOpen());
+        
+        //
+        claimDividend(msg.sender);
         balances[msg.sender] = balances[msg.sender].sub(_tokens);
         tokensIssuedTotal = tokensIssuedTotal.sub(_tokens);
         emit TokenExchangeRequested(msg.sender, _tokens);
     }
 
-    // ERC20 functions -------------------
+    // ERC20 functions ------------------------------------
 
     /* Transfer out any accidentally sent ERC20 tokens */
 
@@ -492,6 +528,7 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
     }
 
     /* To do before any transfers */
+
     function beforeTransfer(address _from, address _to, uint _amount) internal {
         claimDividend(_from);
         claimDividend(_to);

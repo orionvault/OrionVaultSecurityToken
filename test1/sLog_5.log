@@ -1,0 +1,58 @@
+2018-09-05 13:28:42 UTC
+
+========================================
+== Contract Orion Vault Security Token initialized
+== 
+At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
+
+===============================================================================
+============ No votes during second voting period
+===============================================================================
+
+========================================
+== Jump to: 2020-07-10 00:00:00 UTC
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [at_now acc]  is 1594339200 as expected
+
+DIFFERENCES
+[:c, :at_now, 1577836800, 1594339200, 16502400]
+
+========================================
+== After 2nd voting period - no votes
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [is_voting_open acc]  is false as expected
+ok  val [get_last_vote_nr acc]  is 2 as expected
+ok  val [vote_result acc]  is 0 as expected
+
+DIFFERENCES
+(no differences found)
+
+========================================
+== Claim team tokens
+== 
+
+ACTIONS
+
+VERIFY
+ok  val [vote_result acc]  is 1 as expected
+ok  val [balance_of acc]  is 750000 as expected
+ok  diff [balance_of acc] is 375000 as expected
+ok  val [tokens_issued_total acc]  is 3750000 as expected
+ok  diff [tokens_issued_total acc] is 375000 as expected
+
+DIFFERENCES
+[:c, :tokens_issued_total, 3375000.0, 3750000.0, 375000.0]
+[:c, :team_unclaimed_tokens, 1125000.0, 750000.0, -375000.0]
+["vote_result:2", :vote_result, 0, 1, 1]
+
+Errors found: 0
+
+2018-09-05 13:28:56 UTC
