@@ -1,15 +1,16 @@
-2018-09-05 13:19:44 UTC
+2018-09-06 09:28:36 UTC
 
 ========================================
 == Contract Orion Vault Security Token initialized
 == 
-At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
+At address 0xCE89991dc79A07db6Da95cE31354cFd47b1939A4
 
 ========================================
 == Jump to: 2019-06-30 00:00:00 UTC
 == 
 
 ACTIONS
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : set_test_time : [1561852800] -- 28,248 gas
 
 VERIFY
 ok  val [at_now acc]  is 1561852800 as expected
@@ -22,7 +23,7 @@ DIFFERENCES
 == 
 
 ACTIONS
-CONTRIBUTE : @client.transfer(acct_#<Eth::Key:0x0000000004031570>, 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc, 2)
+Contribute : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : 2 ether -- 20,750 gas
 
 VERIFY
 ok  val [dividend_total acc]  is 1000000000000 as expected
@@ -40,6 +41,7 @@ DIFFERENCES
 == 
 
 ACTIONS
+Transact : 0x643a3605038bb84439Ca686727FfF5aE34E944b7 : claim_dividend : ["acct(1)"] -- 39,561 gas
 
 VERIFY
 ok  diff [get_balance acc1] is ≈16666666666650000 as expected (within 0.1 ether)
@@ -54,6 +56,7 @@ DIFFERENCES
 == 
 
 ACTIONS
+Transact : acct(5) : transfer : ["acct(6)", 100000] -- -16,580,111 gas
 
 VERIFY
 ok  val [balance_of acc5] 5 is 450000 as expected
@@ -80,6 +83,7 @@ DIFFERENCES
 == 
 
 ACTIONS
+Transact : acct(5) : transfer : ["acct(8)", 100000] -- 75,496 gas
 
 VERIFY
 ok  val [balance_of acc5] 5 is 350000 as expected
@@ -101,4 +105,4 @@ DIFFERENCES
 
 Errors found: 0
 
-2018-09-05 13:20:03 UTC
+2018-09-06 09:28:56 UTC

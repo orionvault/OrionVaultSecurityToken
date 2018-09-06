@@ -1,9 +1,9 @@
-2018-09-05 13:28:42 UTC
+2018-09-06 09:30:01 UTC
 
 ========================================
 == Contract Orion Vault Security Token initialized
 == 
-At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
+At address 0xCE89991dc79A07db6Da95cE31354cFd47b1939A4
 
 ===============================================================================
 ============ No votes during second voting period
@@ -14,6 +14,7 @@ At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
 == 
 
 ACTIONS
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : set_test_time : [1594339200] -- 28,248 gas
 
 VERIFY
 ok  val [at_now acc]  is 1594339200 as expected
@@ -40,6 +41,7 @@ DIFFERENCES
 == 
 
 ACTIONS
+Transact : 0x643a3605038bb84439Ca686727FfF5aE34E944b7 : process_vote : [2] -- 68,775 gas
 
 VERIFY
 ok  val [vote_result acc]  is 1 as expected
@@ -55,4 +57,4 @@ DIFFERENCES
 
 Errors found: 0
 
-2018-09-05 13:28:56 UTC
+2018-09-06 09:30:16 UTC

@@ -1,9 +1,9 @@
-2018-09-05 13:18:42 UTC
+2018-09-06 09:27:49 UTC
 
 ========================================
 == Contract Orion Vault Security Token initialized
 == 
-At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
+At address 0xCE89991dc79A07db6Da95cE31354cFd47b1939A4
 
 ===============================================================================
 ============ Set wallet and other initial checks
@@ -14,6 +14,7 @@ At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
 == 
 
 ACTIONS
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : set_wallet : ["0x6369dA8cedB7E360F82adde7fe4A92B443c424F9"] -- 30,668 gas
 
 VERIFY
 ok  val [wallet acc]  is 6369da8cedb7e360f82adde7fe4a92b443c424f9 as expected
@@ -47,6 +48,16 @@ DIFFERENCES
 == 
 
 ACTIONS
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : change_max_token_supply : [4500000] -- 29,637 gas
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : mint_tokens : ["acct(1)", 50000] -- 76,466 gas
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : mint_tokens : ["acct(2)", 100000] -- 61,530 gas
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : mint_tokens : ["acct(3)", 150000] -- 61,530 gas
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : mint_tokens : ["acct(4)", 200000] -- 61,530 gas
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : mint_tokens : ["acct(5)", 500000] -- 61,530 gas
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : mint_tokens : ["acct(6)", 750000] -- 61,530 gas
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : mint_tokens : ["acct(7)", 1250000] -- 61,530 gas
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : mint_tokens : ["acct(8)", 1] -- 25,392 gas
+Transact : acct(1) : transfer : ["acct(2)", 10000] -- 24,176 gas
 
 VERIFY
 ok  val [max_token_supply acc]  is 4500000 as expected
@@ -85,6 +96,7 @@ DIFFERENCES
 == 
 
 ACTIONS
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : set_test_time : [1514764800] -- 28,184 gas
 
 VERIFY
 ok  val [at_now acc]  is 1514764800 as expected
@@ -94,4 +106,4 @@ DIFFERENCES
 
 Errors found: 0
 
-2018-09-05 13:18:59 UTC
+2018-09-06 09:28:07 UTC

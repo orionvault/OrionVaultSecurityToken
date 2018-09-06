@@ -1,9 +1,9 @@
-2018-09-05 13:19:15 UTC
+2018-09-06 09:28:10 UTC
 
 ========================================
 == Contract Orion Vault Security Token initialized
 == 
-At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
+At address 0xCE89991dc79A07db6Da95cE31354cFd47b1939A4
 
 ===============================================================================
 ============ Some minting
@@ -14,6 +14,7 @@ At address 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc
 == 
 
 ACTIONS
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : change_max_token_supply : [4499000] -- 23,562 gas
 
 VERIFY
 ok  val [max_token_supply acc]  is 4500000 as expected
@@ -26,7 +27,7 @@ DIFFERENCES
 == 
 
 ACTIONS
-CONTRIBUTE : @client.transfer(acct_#<Eth::Key:0x00000000038b11b0>, 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc, 1)
+Contribute : acct(1) : 1 ether -- -45,433,204 gas
 
 VERIFY
 ok  val [dividend_total acc]  is 0 as expected
@@ -42,7 +43,7 @@ DIFFERENCES
 == 
 
 ACTIONS
-CONTRIBUTE : @client.transfer(acct_#<Eth::Key:0x00000000038b1c00>, 0xFe89bECFAC8DEd2c9905eBDbcB6d50310B95a3Dc, 1)
+Contribute : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : 1 ether -- 65,750 gas
 
 VERIFY
 ok  val [dividend_total acc]  is 333333333333 as expected
@@ -60,6 +61,8 @@ DIFFERENCES
 == 
 
 ACTIONS
+Transact : acct(3) : claim_dividend : ["acct(1)"] -- 54,561 gas
+Transact : acct(5) : claim_dividend_multiple : [["0x64d080373bdB25B1Ede1075C33c8cf733259bBCE", "0xae22Fcd102c6C07846b81cae68d8ee62e8ff9D6F", "0x6b733436c8fc3cCf759bD368738aE77a399946f2"]] -- 121,524 gas
 
 VERIFY
 ok  val [dividend_tracker acc1] 1 is 333333333333 as expected
@@ -79,6 +82,7 @@ DIFFERENCES
 == 
 
 ACTIONS
+Transact : 0xb7C0b4e6156aacdaa767fb1515949d83948F889F : make_tradeable : [] -- 42,694 gas
 
 VERIFY
 ok  val [tokens_tradeable acc]  is true as expected
@@ -91,6 +95,7 @@ DIFFERENCES
 == 
 
 ACTIONS
+Transact : acct(2) : transfer : ["acct(5)", 50000] -- 71,243 gas
 
 VERIFY
 ok  val [balance_of acc2] 2 is 50000 as expected
@@ -110,4 +115,4 @@ DIFFERENCES
 
 Errors found: 0
 
-2018-09-05 13:19:37 UTC
+2018-09-06 09:28:33 UTC

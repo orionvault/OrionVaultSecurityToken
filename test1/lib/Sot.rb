@@ -294,7 +294,7 @@ class Sot
     # other maps
     
     @gmaps.keys.each do |gmap|
-      explode(@gmaps[gmap]).each do |ary|
+      @gmaps[gmap].explode.each do |ary|
         ref = "#{gmap}:" + ary.join(':')
         v1, v2 = h1[:gmaps][ref], h2[:gmaps][ref]
         if v1 != v2 then
@@ -442,14 +442,24 @@ class Sot
   #
   # Contribute (send ether to the contract)
   #
-
+  
   def contribute(a)
     key = a[1]
     amt = (a[2] * 10**18).to_i
-    @sl.p "CONTRIBUTE : @client.transfer(acct_#{a[1]}, #{@address}, #{a[2]})"
+    balance1 = @client.get_balance(key.address)
     @client.transfer(key, @address, amt)
+    cost = balance1 - @client.get_balance(key.address) - amt
+    @sl.p "Contribute : #{get_address_from_key(key)} : #{a[2]} ether -- #{comma_numbers(cost/@client.gas_price)} gas"
   end
-
+  
+  def get_address_from_key(key)
+    address = key.address
+    i = @a.find_index(address).to_i
+    return "acct(#{i})" if (i > 0)
+    return address
+  end
+  
+  
   # ---------------------------------------------------------------------------
   #
   # Transact (interact with the contract)
@@ -458,9 +468,13 @@ class Sot
   def transact(a)
     begin
       function = a[0].to_s
-      contract(a[1])
+      key = a[1]
+      contract(key)
       parameters = a[2..-1]
+      balance1 = @client.get_balance(key.address)
       @contract.transact_and_wait.__send__ function, *parameters
+      cost = balance1 - @client.get_balance(key.address)
+      @sl.p "Transact : #{get_address_from_key(key)} : #{function} : #{check_addresses_in_params(parameters.clone)} -- #{comma_numbers(cost/@client.gas_price)} gas"
     rescue
       puts "===ERROR===transact"
       puts function
@@ -468,6 +482,16 @@ class Sot
       puts "===ERROR==="
       exit 0
     end
+  end
+  
+  def check_addresses_in_params(parameters)
+    parameters.each_index do |i|
+      if parameters[i].is_a?(String) && parameters[i] =~ /^0x[0-9A-Fa-f]*$/
+        j = @a.find_index(parameters[i]).to_i
+        parameters[i] = "acct(#{j})" if j > 0
+      end
+    end
+    return parameters
   end
   
   # ---------------------------------------------------------------------------
@@ -529,12 +553,6 @@ class Sot
           x = @contract.call.__send__ function
         end
       end
-    
-      #  puts '---'
-      #  puts call
-      #  puts '---'
-
-      # x = eval call
       
       # return without formatting (default)
       return x unless a[2]
@@ -561,124 +579,6 @@ class Sot
     
   end
 
-  def call_old(a)
-  
-    puts a.inspect
-    
-    target = ''
-    function = ''
-    value = ''
-    
-    # convert to array
-    a = [ a.to_s ] if ( a.is_a?(Symbol) || a.is_a?(String) )
-    
-    a[0] = a[0].to_s
-    
-    if a[1].is_a?(String) then
-      value = '"' + a[1] + '"'
-    elsif a[1].kind_of?(Array) then
-	    value = a[1][0]
-    else
-      value = a[1]
-    end
-    
-    if a[0].to_s =~ /^e_(.*)/ then
-      target = 'client'
-      function = $1
-    elsif a[0].to_s == 'get_balance' then
-      target = 'client'
-      function = 'get_balance'
-    else
-      target = 'contract.call'
-      function = a[0]
-    end
-    
-    if a[1] then
-      call =  "@#{target}.#{function}(#{value})"
-    else
-      call =  "@#{target}.#{function}"
-    end
-    
-    #  puts '---'
-    #  puts call
-    #  puts '---'
-
-    x = eval call
-    
-    # return without formatting (default)
-    return x unless a[2]
-    
-    # return with formatting
-    type = type_of(function)
-  
-    x = Time.at(x.to_i).utc          if type == :date
-    x = comma_numbers(x.to_f / @E18) if type == :ether
-    x = comma_numbers(x.to_f / @EXX) if type == :token
-    x += '0x'                        if type == :address
-    
-    return x
-    
-  end
-  
-  # ---------------------------------------------------------------------------
-  #
-  # Utilities
-  #
-  
-  def explode(a)
-
-    # "explodes" and array of arrays into an array of arrays of all the possible combinations
-    #
-    # Example
-    #
-    # input:
-    #
-    # [ [1,2], [:a, :b, :c], ['x', 'y'] ]
-    #
-    # output:
-    #
-    # [
-    #   [1, :a, "x"], [1, :a, "y"], [1, :b, "x"], [1, :b, "y"], [1, :c, "x"], [1, :c, "y"], 
-    #   [2, :a, "x"], [2, :a, "y"], [2, :b, "x"], [2, :b, "y"], [2, :c, "x"], [2, :c, "y"]
-    # ]
-
-    # the following makes it work for more general cases, such as
-    #
-    # [ 1, [:a, :b, :c], ['x', 'y'] ]
-
-    a.each_index do |i|
-       a[i] = [ a[i] ] unless a[i].respond_to?(:each)
-    end
-
-    #
-
-    r = [ [] ]
-    a.each_index do |i|
-      s = []
-      r.each do |ra|
-        a[i].each do |e|
-          s << ra + [e]
-        end
-      end
-      r = s.clone
-    end
-
-    return r
-    
-  end
-  
-  def make_array_elements_respond_to_each(a)
-  
-    # convert all elements of an array that do not respond to "each"
-  
-    a.each_index do |i|
-      a[i] = [ a[i] ] unless a[i].respond_to?(:each)
-    end
-
-    return a
-
-  end
-  
 end
 
 
@@ -729,7 +629,7 @@ class Array
   
     # returns an array of elements that all respond to :each
     #
-    # does this by converfting any element of an array that does not 
+    # does this by converting any element of an array that does not 
     # respond to :each to an array containing that element.
   
     self.each_index do |i|
