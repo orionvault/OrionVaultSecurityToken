@@ -293,6 +293,10 @@ contract OrionVaultSecurityToken is ERC20Token, Wallet {
         emit Dividend(msg.value, oldDividendResidue, availableToDistribute, dividendResidue, dividendPerToken, dividendTotal, tokensIssuedTotal);
     }
 
+    function claimOwnDividend() public {
+        claimDividend(msg.sender);
+    }
+    
     function claimDividend(address _account) public {
         if (balances[_account] == 0) {
             dividendTracker[_account] = dividendTotal;
